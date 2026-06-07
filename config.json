@@ -1,0 +1,88 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "default_agent": "scrum-master",
+    "model": "{env:OPENCODE_MODEL}",
+    "small_model": "{env:OPENCODE_SMALL_MODEL}",
+    "instructions": [
+        ".opencode/agents/AGENTS.md",
+        "README.md"
+    ],
+    "permission": {
+        "*": "ask",
+        "edit": "ask",
+        "bash": {
+            "*": "ask",
+            "git status*": "allow",
+            "git diff*": "allow",
+            "git log*": "allow",
+            "git branch*": "allow",
+            "git fetch*": "ask",
+            "ls*": "allow",
+            "find*": "allow",
+            "grep*": "allow",
+            "python -m pytest*": "allow",
+            "pytest*": "allow",
+            "npm test*": "allow",
+            "ruff*": "allow",
+            "gh issue view*": "allow",
+            "gh issue list*": "allow",
+            "gh project item-list*": "allow",
+            "gh auth status*": "allow",
+            "gh issue create*": "ask",
+            "gh issue edit*": "ask",
+            "gh project item-add*": "ask",
+            "gh project item-edit*": "ask",
+            "git push*": "allow",
+            "rm -rf*": "deny"
+        },
+        "skill": {
+            "*": "allow"
+        },
+        "task": {
+            "*": "ask",
+            "cybersec-engineer": "allow",
+            "backend-dev": "allow",
+            "frontend-dev": "allow",
+            "qa-tester": "allow",
+            "graphic-designer": "allow"
+        }
+    },
+    "agent": {
+        "scrum-master": {
+            "mode": "primary",
+            "description": "Scrum Master et chef de projet technique : découpage des phases de la Toolbox, priorisation du backlog et suivi automatisé Git.",
+            "prompt": "{file:.opencode/agents/scrum_master.md}"
+        },
+        "graphic-designer": {
+            "mode": "subagent",
+            "description": "Expert UI/UX designer : création de la charte graphique globale de la toolbox, de l'identité visuelle et des styles CSS/Tailwind.",
+            "prompt": "{file:.opencode/agents/graphiste.md}",
+            "permission": {
+                "edit": "allow"
+            }
+        },
+        "cybersec-engineer": {
+            "mode": "subagent",
+            "description": "Auditeur de sécurité DevSecOps : modélisation des menaces en amont et audit statique du code final pour garantir la conformité OWASP.",
+            "prompt": "{file:.opencode/agents/cybersec.md}",
+            "permission": {
+                "edit": "deny"
+            }
+        },
+        "qa-tester": {
+            "mode": "subagent",
+            "description": "QA Engineer Senior : conception et exécution des 4 types de tests obligatoires (unitaires, intégration, fonctionnels et non-régression).",
+            "prompt": "{file:.opencode/agents/tester.md}"
+        },
+        "backend-dev": {
+            "mode": "subagent",
+            "description": "Développeur Backend Senior : conception de la logique métier core des outils, création et exposition des API.",
+            "prompt": "{file:.opencode/agents/backend.md}"
+        },
+        "frontend-dev": {
+            "mode": "subagent",
+            "description": "Développeur Frontend : intégration de l'interface utilisateur de la toolbox et connexion asynchrone aux endpoints de l'API.",
+            "prompt": "{file:.opencode/agents/frontend.md}"
+        }
+    }
+}
