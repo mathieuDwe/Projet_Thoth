@@ -6,24 +6,24 @@ import Button from '../components/common/Button';
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Veuillez remplir tous les champs');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(username, password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Email ou mot de passe incorrect');
+      setError(err.message || "Nom d'utilisateur ou mot de passe incorrect");
     } finally {
       setLoading(false);
     }
@@ -45,15 +45,15 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-              Email
+              Nom d'utilisateur
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(''); }}
+              type="text"
+              value={username}
+              onChange={(e) => { setUsername(e.target.value); setError(''); }}
               className="input-soc text-sm"
-              placeholder="vous@exemple.com"
-              autoComplete="email"
+              placeholder="votre pseudo"
+              autoComplete="username"
               autoFocus
             />
           </div>

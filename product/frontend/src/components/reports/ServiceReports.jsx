@@ -24,6 +24,15 @@ const serviceLabelMap = {
   social_harvester: 'Social Harvester',
   dns_investigator: 'DNS Investigator',
   ip_geoloc: 'IP Geolocation',
+  person_finder: 'Person Finder',
+  email_investigator: 'Email Investigator',
+  web_scanner: 'Web Scanner',
+  wayback_machine: 'Wayback Machine',
+  image_search: 'Image Search',
+  phone_analyzer: 'Phone Analyzer',
+  text_analyzer: 'Text Analyzer',
+  url_expander: 'URL Expander',
+  shodan_lookup: 'Shodan Lookup',
 };
 
 export default function ServiceReports({ serviceName, limit = 5 }) {

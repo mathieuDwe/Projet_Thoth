@@ -10,6 +10,15 @@ import {
   GlobeAltIcon,
   UsersIcon,
   MapPinIcon,
+  UserGroupIcon,
+  EnvelopeIcon,
+  CodeBracketIcon,
+  ClockIcon,
+  MagnifyingGlassCircleIcon,
+  PhoneIcon,
+  DocumentTextIcon as DocIcon,
+  LinkIcon,
+  ServerStackIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -25,6 +34,15 @@ const services = [
   { name: 'DNS Investigator', path: '/tools/dns-investigator', icon: GlobeAltIcon },
   { name: 'Social Harvester', path: '/tools/social-harvester', icon: UsersIcon },
   { name: 'IP Geolocation', path: '/tools/ip-geolocation', icon: MapPinIcon },
+  { name: 'Person Finder', path: '/tools/person-finder', icon: UserGroupIcon },
+  { name: 'Email Investigator', path: '/tools/email-investigator', icon: EnvelopeIcon },
+  { name: 'Web Scanner', path: '/tools/web-scanner', icon: CodeBracketIcon },
+  { name: 'Wayback Machine', path: '/tools/wayback-machine', icon: ClockIcon },
+  { name: 'Image Search', path: '/tools/image-search', icon: MagnifyingGlassCircleIcon },
+  { name: 'Phone Analyzer', path: '/tools/phone-analyzer', icon: PhoneIcon },
+  { name: 'Text Analyzer', path: '/tools/text-analyzer', icon: DocIcon },
+  { name: 'URL Expander', path: '/tools/url-expander', icon: LinkIcon },
+  { name: 'Shodan Lookup', path: '/tools/shodan-lookup', icon: ServerStackIcon },
 ];
 
 export default function Sidebar() {

@@ -6,9 +6,9 @@ from typing import Optional
 from uuid import UUID
 
 import httpx
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, field_validator
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,6 +46,15 @@ SERVICE_BREACH = os.getenv("SERVICE_BREACH_URL", "http://localhost:8001")
 SERVICE_SOCIAL = os.getenv("SERVICE_SOCIAL_URL", "http://localhost:8002")
 SERVICE_DNS = os.getenv("SERVICE_DNS_URL", "http://localhost:8003")
 SERVICE_IP = os.getenv("SERVICE_IP_URL", "http://localhost:8004")
+SERVICE_PERSON_FINDER = os.getenv("SERVICE_PERSON_FINDER_URL", "http://localhost:8005")
+SERVICE_EMAIL_INVESTIGATOR = os.getenv("SERVICE_EMAIL_INVESTIGATOR_URL", "http://localhost:8006")
+SERVICE_WEB_SCANNER = os.getenv("SERVICE_WEB_SCANNER_URL", "http://localhost:8007")
+SERVICE_WAYBACK_MACHINE = os.getenv("SERVICE_WAYBACK_MACHINE_URL", "http://localhost:8008")
+SERVICE_IMAGE_SEARCH = os.getenv("SERVICE_IMAGE_SEARCH_URL", "http://localhost:8009")
+SERVICE_PHONE_ANALYZER = os.getenv("SERVICE_PHONE_ANALYZER_URL", "http://localhost:8010")
+SERVICE_TEXT_ANALYZER = os.getenv("SERVICE_TEXT_ANALYZER_URL", "http://localhost:8011")
+SERVICE_URL_EXPANDER = os.getenv("SERVICE_URL_EXPANDER_URL", "http://localhost:8012")
+SERVICE_SHODAN_LOOKUP = os.getenv("SERVICE_SHODAN_LOOKUP_URL", "http://localhost:8013")
 
 SERVICE_TIMEOUT = 30.0
 
@@ -223,12 +232,41 @@ async def root():
             "GET /reports/{id}",
             "DELETE /reports/{id}",
             "GET /reports/{id}/export",
+        "POST /person-finder/search",
+        "POST /person-finder/images",
+        "POST /person-finder/articles",
+        "POST /email-investigator/analyze",
+        "POST /email-investigator/domain-mx",
+        "POST /web-scanner/scan",
+        "POST /web-scanner/redirects",
+        "POST /wayback-machine/snapshots",
+        "POST /wayback-machine/available",
+        "POST /image-search/reverse",
+        "POST /image-search/metadata",
+        "POST /image-search/analyze",
+        "POST /phone-analyzer/analyze",
+        "POST /text-analyzer/analyze",
+        "POST /text-analyzer/deep",
+        "POST /url-expander/expand",
+        "POST /url-expander/preview",
+        "POST /shodan-lookup/ip",
+        "POST /shodan-lookup/domain",
+        "POST /shodan-lookup/query",
         ],
         "microservices": {
             "breach_lookup": f"{SERVICE_BREACH}/health",
             "social_harvester": f"{SERVICE_SOCIAL}/health",
             "dns_investigator": f"{SERVICE_DNS}/health",
             "ip_geoloc": f"{SERVICE_IP}/health",
+            "person_finder": f"{SERVICE_PERSON_FINDER}/health",
+        "email_investigator": f"{SERVICE_EMAIL_INVESTIGATOR}/health",
+        "web_scanner": f"{SERVICE_WEB_SCANNER}/health",
+        "wayback_machine": f"{SERVICE_WAYBACK_MACHINE}/health",
+        "image_search": f"{SERVICE_IMAGE_SEARCH}/health",
+        "phone_analyzer": f"{SERVICE_PHONE_ANALYZER}/health",
+        "text_analyzer": f"{SERVICE_TEXT_ANALYZER}/health",
+        "url_expander": f"{SERVICE_URL_EXPANDER}/health",
+        "shodan_lookup": f"{SERVICE_SHODAN_LOOKUP}/health",
         },
     }
 
@@ -246,6 +284,15 @@ async def status():
         "social_harvester": f"{SERVICE_SOCIAL}/health",
         "dns_investigator": f"{SERVICE_DNS}/health",
         "ip_geoloc": f"{SERVICE_IP}/health",
+        "person_finder": f"{SERVICE_PERSON_FINDER}/health",
+        "email_investigator": f"{SERVICE_EMAIL_INVESTIGATOR}/health",
+        "web_scanner": f"{SERVICE_WEB_SCANNER}/health",
+        "wayback_machine": f"{SERVICE_WAYBACK_MACHINE}/health",
+        "image_search": f"{SERVICE_IMAGE_SEARCH}/health",
+        "phone_analyzer": f"{SERVICE_PHONE_ANALYZER}/health",
+        "text_analyzer": f"{SERVICE_TEXT_ANALYZER}/health",
+        "url_expander": f"{SERVICE_URL_EXPANDER}/health",
+        "shodan_lookup": f"{SERVICE_SHODAN_LOOKUP}/health",
     }
 
     async def check_service(name: str, url: str) -> dict:
@@ -302,7 +349,7 @@ async def dashboard_stats(session: AsyncSession = Depends(get_session)):
     from shared.http_client import ThothHttpClient
     client = ThothHttpClient(service_name="gateway")
     active_services = 0
-    for svc_url in [SERVICE_BREACH, SERVICE_SOCIAL, SERVICE_DNS, SERVICE_IP]:
+    for svc_url in [SERVICE_BREACH, SERVICE_SOCIAL, SERVICE_DNS, SERVICE_IP, SERVICE_PERSON_FINDER, SERVICE_EMAIL_INVESTIGATOR, SERVICE_WEB_SCANNER, SERVICE_WAYBACK_MACHINE, SERVICE_IMAGE_SEARCH, SERVICE_PHONE_ANALYZER, SERVICE_TEXT_ANALYZER, SERVICE_URL_EXPANDER, SERVICE_SHODAN_LOOKUP]:
         try:
             async with httpx.AsyncClient(timeout=3.0) as c:
                 resp = await c.get(f"{svc_url}/health")
@@ -331,6 +378,15 @@ async def dashboard_services():
         {"name": "Social Harvester", "type": "Threat Intel", "status": "online"},
         {"name": "Breach Lookup", "type": "Threat Intel", "status": "online"},
         {"name": "IP Geolocation", "type": "Recon", "status": "online"},
+        {"name": "Person Finder", "type": "Recon", "status": "online"},
+        {"name": "Email Investigator", "type": "Recon", "status": "online"},
+        {"name": "Web Scanner", "type": "Recon", "status": "online"},
+        {"name": "Wayback Machine", "type": "Recon", "status": "online"},
+        {"name": "Image Search", "type": "Recon", "status": "online"},
+        {"name": "Phone Analyzer", "type": "Recon", "status": "online"},
+        {"name": "Text Analyzer", "type": "Utils", "status": "online"},
+        {"name": "URL Expander", "type": "Utils", "status": "online"},
+        {"name": "Shodan Lookup", "type": "Recon", "status": "online"},
     ]
 
     service_urls = {
@@ -338,6 +394,15 @@ async def dashboard_services():
         "Breach Lookup": SERVICE_BREACH,
         "Social Harvester": SERVICE_SOCIAL,
         "IP Geolocation": SERVICE_IP,
+        "Person Finder": SERVICE_PERSON_FINDER,
+        "Email Investigator": SERVICE_EMAIL_INVESTIGATOR,
+        "Web Scanner": SERVICE_WEB_SCANNER,
+        "Wayback Machine": SERVICE_WAYBACK_MACHINE,
+        "Image Search": SERVICE_IMAGE_SEARCH,
+        "Phone Analyzer": SERVICE_PHONE_ANALYZER,
+        "Text Analyzer": SERVICE_TEXT_ANALYZER,
+        "URL Expander": SERVICE_URL_EXPANDER,
+        "Shodan Lookup": SERVICE_SHODAN_LOOKUP,
     }
 
     async def check(svc_name: str, url: str) -> str:
@@ -408,6 +473,241 @@ class UpdateApiKeysRequest(BaseModel):
     ipinfo_api_key: Optional[str] = ""
 
 
+
+@app.post("/person-finder/search")
+async def person_finder_search(request: GlobalInvestigateRequest):
+    """Proxy to person_finder service for person search."""
+    if not request.username and not request.email:
+        raise HTTPException(status_code=400, detail="username or email required")
+    return await call_microservice(SERVICE_PERSON_FINDER, "/search/person", {"name": request.username or request.email})
+
+
+@app.post("/person-finder/images")
+async def person_finder_images(request: GlobalInvestigateRequest):
+    """Proxy to person_finder service for image search."""
+    target = request.username or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="username or email required")
+    return await call_microservice(SERVICE_PERSON_FINDER, "/search/images", {"query": target})
+
+
+@app.post("/person-finder/articles")
+async def person_finder_articles(request: GlobalInvestigateRequest):
+    """Proxy to person_finder service for article search."""
+    target = request.username or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="username or email required")
+    return await call_microservice(SERVICE_PERSON_FINDER, "/search/articles", {"query": target})
+
+
+@app.post("/email-investigator/analyze")
+async def email_investigator_analyze(request: GlobalInvestigateRequest):
+    """Proxy to email_investigator service for email analysis."""
+    if not request.email:
+        raise HTTPException(status_code=400, detail="email required")
+    return await call_microservice(SERVICE_EMAIL_INVESTIGATOR, "/analyze/email", {"email": request.email})
+
+
+@app.post("/email-investigator/domain-mx")
+async def email_investigator_domain_mx(request: GlobalInvestigateRequest):
+    """Proxy to email_investigator service for domain MX analysis."""
+    target = request.email or request.domain
+    if not target:
+        raise HTTPException(status_code=400, detail="email or domain required")
+    domain = target.split("@")[1] if "@" in target else target
+    return await call_microservice(SERVICE_EMAIL_INVESTIGATOR, "/analyze/domain-mx", {"domain": domain})
+
+
+@app.post("/web-scanner/scan")
+async def web_scanner_scan(request: GlobalInvestigateRequest):
+    """Proxy to web_scanner service for URL scan."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_WEB_SCANNER, "/scan/url", {"url": url})
+
+
+@app.post("/web-scanner/redirects")
+async def web_scanner_redirects(request: GlobalInvestigateRequest):
+    """Proxy to web_scanner service for redirect chain."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_WEB_SCANNER, "/scan/redirects", {"url": url})
+
+
+@app.post("/wayback-machine/snapshots")
+async def wayback_machine_snapshots(request: GlobalInvestigateRequest):
+    """Proxy to wayback_machine service for URL snapshots."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_WAYBACK_MACHINE, "/archive/snapshots", {"url": url})
+
+
+@app.post("/wayback-machine/available")
+async def wayback_machine_available(request: GlobalInvestigateRequest):
+    """Proxy to wayback_machine service for availability check."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_WAYBACK_MACHINE, "/archive/available", {"url": url})
+
+
+@app.post("/image-search/reverse")
+async def image_search_reverse(request: GlobalInvestigateRequest):
+    """Proxy to image_search service for reverse image search."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    image_url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_IMAGE_SEARCH, "/search/reverse", {"image_url": image_url})
+
+
+@app.post("/image-search/metadata")
+async def image_search_metadata(request: GlobalInvestigateRequest):
+    """Proxy to image_search service for image metadata."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    image_url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_IMAGE_SEARCH, "/search/metadata", {"image_url": image_url})
+
+
+@app.post("/image-search/analyze")
+async def image_search_analyze(request: Request):
+    """Proxy to image_search service for image analysis (supports file upload)."""
+    try:
+        body = await request.form()
+        files = {}
+        data = {}
+        for field, value in body.items():
+            if hasattr(value, "read"):
+                files["file"] = (value.filename, value.file, getattr(value, "content_type", "image/jpeg"))
+            else:
+                data[field] = value
+
+        async with httpx.AsyncClient(timeout=SERVICE_TIMEOUT) as client:
+            if files:
+                resp = await client.post(
+                    f"{SERVICE_IMAGE_SEARCH}/search/analyze",
+                    data=data,
+                    files=files,
+                )
+            else:
+                resp = await client.post(
+                    f"{SERVICE_IMAGE_SEARCH}/search/analyze",
+                    json=data,
+                )
+
+            if resp.status_code == 200:
+                result = resp.json()
+                return {
+                    "service": "image-search",
+                    "success": result.get("success", False),
+                    "data": result.get("data"),
+                    "summary": result.get("summary"),
+                    "error": result.get("error"),
+                }
+            else:
+                return {
+                    "service": "image-search",
+                    "success": False,
+                    "data": None,
+                    "error": f"HTTP {resp.status_code}: {resp.text[:200]}",
+                }
+    except Exception as e:
+        return {"service": "image-search", "success": False, "data": None, "error": str(e)[:200]}
+
+
+@app.post("/phone-analyzer/analyze")
+async def phone_analyze(request: GlobalInvestigateRequest):
+    """Proxy to phone_analyzer service."""
+    if not request.username:
+        raise HTTPException(status_code=400, detail="username (phone number) required")
+    return await call_microservice(SERVICE_PHONE_ANALYZER, "/analyze/phone", {"phone": request.username})
+
+
+@app.post("/text-analyzer/analyze")
+async def text_analyze(request: GlobalInvestigateRequest):
+    """Proxy to text_analyzer service."""
+    if not request.username:
+        raise HTTPException(status_code=400, detail="text required")
+    return await call_microservice(SERVICE_TEXT_ANALYZER, "/analyze/text", {"text": request.username})
+
+
+@app.post("/text-analyzer/deep")
+async def text_analyze_deep(request: GlobalInvestigateRequest):
+    """Proxy to text_analyzer service with IP enrichment."""
+    if not request.username:
+        raise HTTPException(status_code=400, detail="text required")
+    return await call_microservice(SERVICE_TEXT_ANALYZER, "/analyze/text-deep", {"text": request.username})
+
+
+@app.post("/url-expander/expand")
+async def url_expander_expand(request: GlobalInvestigateRequest):
+    """Proxy to url_expander service."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_URL_EXPANDER, "/expand/url", {"url": url})
+
+
+@app.post("/url-expander/preview")
+async def url_expander_preview(request: GlobalInvestigateRequest):
+    """Proxy to url_expander service with preview."""
+    target = request.domain or request.email
+    if not target:
+        raise HTTPException(status_code=400, detail="domain or email required")
+    url = f"https://{target}" if not target.startswith(("http://", "https://")) else target
+    return await call_microservice(SERVICE_URL_EXPANDER, "/expand/preview", {"url": url})
+
+
+@app.post("/shodan-lookup/ip")
+async def shodan_lookup_ip(request: GlobalInvestigateRequest):
+    """Proxy to shodan_lookup service for IP lookup."""
+    if not request.ip:
+        raise HTTPException(status_code=400, detail="ip required")
+    return await call_microservice(SERVICE_SHODAN_LOOKUP, "/lookup/ip", {"ip": request.ip})
+
+
+@app.post("/shodan-lookup/domain")
+async def shodan_lookup_domain(request: GlobalInvestigateRequest):
+    """Proxy to shodan_lookup service for domain resolution + scan."""
+    if not request.domain:
+        raise HTTPException(status_code=400, detail="domain required")
+    return await call_microservice(SERVICE_SHODAN_LOOKUP, "/lookup/domain", {"domain": request.domain})
+
+
+@app.get("/temp/{filename}")
+async def proxy_temp_image(filename: str):
+    """Proxy to serve uploaded images from image-search service."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{SERVICE_IMAGE_SEARCH}/temp/{filename}")
+            if resp.status_code == 200:
+                return StreamingResponse(
+                    resp.aiter_bytes(),
+                    media_type=resp.headers.get("content-type", "image/jpeg"),
+                )
+            raise HTTPException(status_code=404, detail="Image not found")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail="Image service unreachable")
+
+
+@app.post("/shodan-lookup/query")
+async def shodan_search(request: GlobalInvestigateRequest):
+    """Proxy to shodan_lookup service for search query."""
+    if not request.username:
+        raise HTTPException(status_code=400, detail="username (search query) required")
+    return await call_microservice(SERVICE_SHODAN_LOOKUP, "/search/query", {"query": request.username, "max_results": 10})
+
+
 @app.get("/settings")
 async def get_settings():
     """Retourne la configuration générale de la plateforme."""
@@ -422,6 +722,15 @@ async def get_settings():
         ("Social Harvester", SERVICE_SOCIAL + "/health", False),
         ("DNS Investigator", SERVICE_DNS + "/health", False),
         ("IP Geolocation", SERVICE_IP + "/health", False),
+        ("Person Finder", SERVICE_PERSON_FINDER + "/health", False),
+        ("Email Investigator", SERVICE_EMAIL_INVESTIGATOR + "/health", False),
+        ("Web Scanner", SERVICE_WEB_SCANNER + "/health", False),
+        ("Wayback Machine", SERVICE_WAYBACK_MACHINE + "/health", False),
+        ("Image Search", SERVICE_IMAGE_SEARCH + "/health", False),
+        ("Phone Analyzer", SERVICE_PHONE_ANALYZER + "/health", False),
+        ("Text Analyzer", SERVICE_TEXT_ANALYZER + "/health", False),
+        ("URL Expander", SERVICE_URL_EXPANDER + "/health", False),
+        ("Shodan Lookup", SERVICE_SHODAN_LOOKUP + "/health", False),
     ]
 
     for name, url, _ in svc_list:
@@ -510,7 +819,6 @@ async def update_api_keys(
         cfg.abuseipdb_api_key = request.abuseipdb_api_key
     if request.ipinfo_api_key:
         cfg.ipinfo_api_key = request.ipinfo_api_key
-
     return {
         "success": True,
         "message": "Clés API mises à jour (pour la session en cours)",
@@ -544,6 +852,8 @@ async def investigate_global(
         tasks["dns_investigator"] = call_microservice(SERVICE_DNS, "/investigate/domain", {"domain": request.domain})
     if request.ip:
         tasks["ip_geoloc"] = call_microservice(SERVICE_IP, "/analyze/ip", {"ip": request.ip})
+    if request.username:
+        tasks["person_finder"] = call_microservice(SERVICE_PERSON_FINDER, "/search/person", {"name": request.username})
 
     if not tasks:
         raise HTTPException(

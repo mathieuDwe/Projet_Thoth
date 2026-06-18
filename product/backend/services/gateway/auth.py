@@ -79,7 +79,7 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 
@@ -184,11 +184,11 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest, session: AsyncSession = Depends(get_session)):
     """Authentifier un utilisateur et retourner un JWT."""
-    result = await session.execute(select(User).where(User.email == request.email))
+    result = await session.execute(select(User).where(User.username == request.username))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(request.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+        raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe incorrect")
 
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Compte désactivé")

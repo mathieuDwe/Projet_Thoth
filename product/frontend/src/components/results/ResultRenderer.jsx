@@ -2,6 +2,10 @@ import BreachResult from './BreachResult';
 import SocialResult from './SocialResult';
 import DNSResult from './DNSResult';
 import IPResult from './IPResult';
+import PersonResult from './PersonResult';
+import EmailResult from './EmailResult';
+import WebScanResult from './WebScanResult';
+import WaybackResult from './WaybackResult';
 import { ClockIcon } from '@heroicons/react/24/outline';
 
 const serviceComponents = {
@@ -10,6 +14,10 @@ const serviceComponents = {
   dns_investigator: DNSResult,
   ip_geolocation: IPResult,
   ip_geoloc: IPResult,
+  person_finder: PersonResult,
+  email_investigator: EmailResult,
+  web_scanner: WebScanResult,
+  wayback_machine: WaybackResult,
 };
 
 export default function ResultRenderer({ serviceName, data, success, summary, error }) {
