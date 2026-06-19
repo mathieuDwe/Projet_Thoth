@@ -1,0 +1,259 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-gateway
+    command: uvicorn services.gateway.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    env_file:
+      - backend/.env
+    environment:
+      SERVICE_BREACH_URL: http://breach-lookup:8001
+      SERVICE_SOCIAL_URL: http://social-harvester:8002
+      SERVICE_DNS_URL: http://dns-investigator:8003
+      SERVICE_IP_URL: http://ip-geoloc:8004
+      SERVICE_PERSON_FINDER_URL: http://person-finder:8005
+      SERVICE_EMAIL_INVESTIGATOR_URL: http://email-investigator:8006
+      SERVICE_WEB_SCANNER_URL: http://web-scanner:8007
+      SERVICE_WAYBACK_MACHINE_URL: http://wayback-machine:8008
+      SERVICE_IMAGE_SEARCH_URL: http://image-search:8009
+      SERVICE_PHONE_ANALYZER_URL: http://phone-analyzer:8010
+      SERVICE_TEXT_ANALYZER_URL: http://text-analyzer:8011
+      SERVICE_URL_EXPANDER_URL: http://url-expander:8012
+      SERVICE_SHODAN_LOOKUP_URL: http://shodan-lookup:8013
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    depends_on:
+      - breach-lookup
+      - social-harvester
+      - dns-investigator
+      - ip-geoloc
+      - person-finder
+      - email-investigator
+      - web-scanner
+      - wayback-machine
+      - image-search
+      - phone-analyzer
+      - text-analyzer
+      - url-expander
+      - shodan-lookup
+    working_dir: /app
+    restart: unless-stopped
+
+  breach-lookup:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-breach-lookup
+    command: uvicorn services.breach_lookup.main:app --host 0.0.0.0 --port 8001 --reload
+    ports:
+      - "8001:8001"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  social-harvester:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-social-harvester
+    command: uvicorn services.social_harvester.main:app --host 0.0.0.0 --port 8002 --reload
+    ports:
+      - "8002:8002"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  dns-investigator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-dns-investigator
+    command: uvicorn services.dns_investigator.main:app --host 0.0.0.0 --port 8003 --reload
+    ports:
+      - "8003:8003"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  ip-geoloc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-ip-geoloc
+    command: uvicorn services.ip_geoloc.main:app --host 0.0.0.0 --port 8004 --reload
+    ports:
+      - "8004:8004"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  person-finder:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-person-finder
+    command: uvicorn services.person_finder.main:app --host 0.0.0.0 --port 8005 --reload
+    ports:
+      - "8005:8005"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  email-investigator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-email-investigator
+    command: uvicorn services.email_investigator.main:app --host 0.0.0.0 --port 8006 --reload
+    ports:
+      - "8006:8006"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  web-scanner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-web-scanner
+    command: uvicorn services.web_scanner.main:app --host 0.0.0.0 --port 8007 --reload
+    ports:
+      - "8007:8007"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  wayback-machine:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-wayback-machine
+    command: uvicorn services.wayback_machine.main:app --host 0.0.0.0 --port 8008 --reload
+    ports:
+      - "8008:8008"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  image-search:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-image-search
+    command: uvicorn services.image_search.main:app --host 0.0.0.0 --port 8009 --reload
+    ports:
+      - "8009:8009"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  phone-analyzer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-phone-analyzer
+    command: uvicorn services.phone_analyzer.main:app --host 0.0.0.0 --port 8010 --reload
+    ports:
+      - "8010:8010"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  text-analyzer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-text-analyzer
+    command: uvicorn services.text_analyzer.main:app --host 0.0.0.0 --port 8011 --reload
+    ports:
+      - "8011:8011"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    restart: unless-stopped
+
+  url-expander:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-url-expander
+    command: uvicorn services.url_expander.main:app --host 0.0.0.0 --port 8012 --reload
+    ports:
+      - "8012:8012"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  shodan-lookup:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    container_name: thoth-shodan-lookup
+    command: uvicorn services.shodan_lookup.main:app --host 0.0.0.0 --port 8013 --reload
+    ports:
+      - "8013:8013"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+      - thoth_data:/data
+    working_dir: /app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: thoth-frontend
+    ports:
+      - "3000:80"
+    env_file:
+      - frontend/.env
+    restart: unless-stopped
+
+volumes:
+  thoth_data:

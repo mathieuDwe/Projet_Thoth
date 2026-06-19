@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+node_modules/
+*.key
+*.pem
+credentials.json
+*.db
+/data/
+.vscode/
+.idea/
+.DS_Store
+product/backend/.env
+product/frontend/.env
+*.log

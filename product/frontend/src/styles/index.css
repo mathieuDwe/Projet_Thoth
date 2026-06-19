@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-800;
+  }
+
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-950;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  ::selection {
+    @apply bg-emerald-500/30 text-emerald-200;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-gray-900/80 backdrop-blur-sm border border-gray-800;
+  }
+
+  .glow-border {
+    @apply border border-gray-800 transition-colors duration-200;
+  }
+
+  .glow-border:hover {
+    @apply border-emerald-500/30;
+  }
+
+  .glow-border:focus-within {
+    @apply border-emerald-500/50;
+  }
+
+  .tech-text {
+    @apply font-mono text-emerald-400;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .card-hover:hover {
+    @apply border-emerald-500/30 shadow-lg shadow-emerald-500/5;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block;
+  }
+
+  .status-dot.online {
+    @apply bg-emerald-500 shadow-sm shadow-emerald-500/50;
+  }
+
+  .status-dot.offline {
+    @apply bg-red-500 shadow-sm shadow-red-500/50;
+  }
+
+  .status-dot.degraded {
+    @apply bg-amber-500 shadow-sm shadow-amber-500/50;
+  }
+
+  .input-soc {
+    @apply w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5
+           text-gray-100 placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50
+           transition-all duration-200;
+  }
+
+  .table-soc {
+    @apply w-full;
+  }
+
+  .table-soc th {
+    @apply text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 text-left;
+  }
+
+  .table-soc td {
+    @apply px-4 py-3 text-sm text-gray-300 border-t border-gray-800;
+  }
+
+  .table-soc tr {
+    @apply transition-colors duration-150;
+  }
+
+  .table-soc tbody tr:hover {
+    @apply bg-gray-800/40;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
